@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 
 // import { Button } from '../../ui/Button'; 
 // import { Card } from '../../ui/Card';
 
+=======
+// Hapus import custom lama
+// import { Button } from '../../ui/Button'; 
+// import { Card } from '../../ui/Card';
+
+// Import dari shadcn (pastikan path benar sesuai hasil install, biasanya di src/components/ui)
+>>>>>>> 14e28428722190264d5b1eb9eff72cb9d6ee3539
 import { Card, CardContent, CardFooter } from '@/Components/ui/card'; 
 import { Button } from '@/Components/ui/button';
 import { Plus, Minus } from 'lucide-react';
@@ -14,6 +22,10 @@ export const ProductCard = ({ product }) => {
   const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
 
   return (
+<<<<<<< HEAD
+=======
+    // Menggunakan structure Card shadcn
+>>>>>>> 14e28428722190264d5b1eb9eff72cb9d6ee3539
     <Card className="group overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full border-slate-100">
       <div className="relative aspect-[4/5] overflow-hidden bg-slate-100">
         <img src={product.image} alt={product.name} className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"/>
