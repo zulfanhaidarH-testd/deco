@@ -117,19 +117,9 @@ export function AdminSidebar() {
               <p className="text-xs text-slate-400">superadmin@decorinn.com</p>
             </DropdownMenuLabel>
             
-            <DropdownMenuSeparator className="bg-slate-700" />
+           
             
-            <DropdownMenuItem className="focus:bg-slate-700 focus:text-white">
-              <User className="mr-2 h-4 w-4 text-slate-400" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem className="focus:bg-slate-700 focus:text-white">
-              <Shield className="mr-2 h-4 w-4 text-slate-400" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-            
-            <DropdownMenuSeparator className="bg-slate-700" />
+           
             
         
             <DropdownMenuItem onClick={handleLogout} className="text-red-400 focus:text-red-400 focus:bg-red-950/20">
