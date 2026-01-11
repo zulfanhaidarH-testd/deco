@@ -1,7 +1,6 @@
 import realApiProvider from './dataProviders/realApiProvider';
 import localStorageProvider from './dataProviders/localStorageProvider';
- 
-// ➜ pilih provider aktif (cukup ganti 1 baris ini kalau mau balik ke local)
+
 const activeProvider = realApiProvider;
 
 export const productService = {

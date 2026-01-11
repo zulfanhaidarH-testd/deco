@@ -84,6 +84,20 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }) => {
           />
         </div>
 
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          
+          <input
+            id="description"
+            type="text"
+            placeholder="e.g., Furniture ini ..."
+            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+            {...register('description', { required: 'Deskripsi produk wajib diisi' })}
+          />
+          
+          {errors.description && <span className="text-xs text-red-500">{errors.description.message}</span>}
+        </div>
+
         {/* Image URL */}
         <div className="col-span-2 space-y-2">
           <Label htmlFor="image">Image URL</Label>
