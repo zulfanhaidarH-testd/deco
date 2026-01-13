@@ -15,6 +15,7 @@ import Login from './pages/auth/Login';
 
 // User Pages
 import Checkout from './pages/checkout/Checkout';
+import OrderSuccess from './pages/OrderSuccess'; // <--- TAMBAHKAN IMPORT INI
 import Home from './pages/Utama/Home';
 import CategoryPage from './pages/Category/CategoryCard';
 import AllProducts from './pages/Products/AllProducts';
@@ -80,20 +81,33 @@ function App() {
                   } />
                 </Route>
 
-                  {/*  CHECKOUT ROUTE */}
-                  <Route path="/checkout" element={
-                    <div className="flex flex-col min-h-screen">
-                      <Navbar />
-                      <main className="flex-grow">
-                        <Checkout />
-                      </main>
-                      <Footer />
-                      <CartDrawer />
-                    </div>
-                  } />
-                  
+                {/* 4. CHECKOUT ROUTE */}
+                <Route path="/checkout" element={
+                  <div className="flex flex-col min-h-screen">
+                    <Navbar />
+                    <main className="flex-grow">
+                      <Checkout />
+                    </main>
+                    <Footer />
+                    <CartDrawer />
+                  </div>
+                } />
 
-                {/* 4. DEFAULT REDIRECT */}
+                {/* 5. ORDER SUCCESS ROUTE (TAMBAHAN) */}
+                <Route path="/order-success" element={
+                  <div className="flex flex-col min-h-screen">
+                    <Navbar />
+                    <main className="flex-grow">
+                      <OrderSuccess />
+                    </main>
+                    <Footer />
+                    <CartDrawer />
+                  </div>
+                } />
+
+                {/* 6. DEFAULT REDIRECT */}
+                {/* Catatan: Route '/' di bawah ini biasanya akan ditimpa oleh Route '/' di UserRoute di atas */}
+                {/* Saya biarkan seperti aslinya sesuai instruksi tanpa mengubah kode lama */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
 
               </Routes>

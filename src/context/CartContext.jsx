@@ -4,7 +4,7 @@ const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
-  const [isOpen, setIsOpen] = useState(false); 
+  const [isOpen, setIsOpen] = useState(false);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -42,31 +42,40 @@ export function CartProvider({ children }) {
     );
   };
 
-  const checkout = async (userEmail) => {
-    if (cart.length === 0) return;
+  // Fungsi Checkout yang diperbarui
+  const checkout = async (userEmail, itemsToCheckout = null) => {
+    const itemsToProcess = itemsToCheckout || cart;
 
-    // Convert cart items to format expected by API
-    const orderItems = cart.map(item => ({
-      productId: item.id || item.productId, 
+    if (itemsToProcess.length === 0) return;
+
+    const orderItems = itemsToProcess.map(item => ({
+      productId: item.id || item.productId,
       name: item.name,
       quantity: item.quantity
     }));
 
     try {
-  
+      // Pastikan path import ini sesuai dengan struktur proyek Anda
       const { productService } = await import('@/services/productService');
-      
+
       await productService.checkout({
         userEmail,
         items: orderItems
       });
 
-    
-      setCart([]);
+      // Update Cart Logic
+      if (itemsToCheckout) {
+        const idsToRemove = new Set(itemsToCheckout.map(item => item.id));
+        setCart(prev => prev.filter(item => !idsToRemove.has(item.id)));
+      } else {
+        setCart([]);
+      }
+
       closeCart();
       alert('Checkout berhasil! Terima kasih sudah berbelanja.');
     } catch (error) {
       alert(`Gagal checkout: ${error.message}`);
+      throw error; 
     }
   };
 
@@ -83,19 +92,19 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      value={{ 
-        cart, 
-        addToCart, 
+      value={{
+        cart,
+        addToCart,
         checkout,
-        removeFromCart, 
-        increaseQuantity, 
-        decreaseQuantity, 
-        getItemQuantity, 
+        removeFromCart,
+        increaseQuantity,
+        decreaseQuantity,
+        getItemQuantity,
         cartTotal,
-        isOpen,     
-        toggleCart, 
+        isOpen,
+        toggleCart,
         openCart,
-        closeCart 
+        closeCart
       }}
     >
       {children}
@@ -103,6 +112,7 @@ export function CartProvider({ children }) {
   );
 }
 
+// Pastikan fungsi useCart ini berada DI LUAR CartProvider
 export function useCart() {
   return useContext(CartContext);
 }
