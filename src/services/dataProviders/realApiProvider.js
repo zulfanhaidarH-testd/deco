@@ -1,63 +1,85 @@
-// src/services/dataProviders/realApiProvider.js
+const BASE_URL = "https://695a3388950475ada46614a5.mockapi.io";
 
-const BASE_URL = "https://695a3388950475ada46614a5.mockapi.io/DecorinnStore";
+const PRODUCTS_URL = `${BASE_URL}/DecorinnStore`;
 const ORDERS_URL = `${BASE_URL}/orders`;
 
 const realApiProvider = {
   name: "realApiProvider",
 
-  async getAllProducts() {
-    return fetch(BASE_URL).then(res => res.json());
+  // ================= PRODUCTS =================
+  getAllProducts: async () => {
+    const res = await fetch(PRODUCTS_URL);
+    return await res.json();
   },
 
-  async getProductById(id) {
-    return fetch(`${BASE_URL}/${id}`).then(res => res.json());
+  getProductById: async (id) => {
+    const res = await fetch(`${PRODUCTS_URL}/${id}`);
+    return await res.json();
   },
 
-  async getProductsByCategory(slug) {
-    return fetch(`${BASE_URL}?category=${slug}`).then(res => res.json());
+  getProductsByCategory: async (slug) => {
+    const res = await fetch(`${PRODUCTS_URL}?category=${slug}`);
+    return await res.json();
   },
 
-  async createProduct(data) {
-    return fetch(BASE_URL, {
+  createProduct: async (data) => {
+    const res = await fetch(PRODUCTS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    }).then(res => res.json());
-  },
-
-  async updateProduct(id, data) {
-    return fetch(`${BASE_URL}/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }).then(res => res.json());
-  },
-
-  async deleteProduct(id) {
-    await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
-  },
-
-  async updateStock(productId, newStock) {
-    const product = await this.getProductById(productId);
-
-    await fetch(`${BASE_URL}/${productId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...product,
-        stock: newStock,
-      }),
     });
+    return await res.json();
   },
 
-  async createOrder(order) {
-    return fetch(ORDERS_URL, {
+  updateProduct: async (id, data) => {
+    const res = await fetch(`${PRODUCTS_URL}/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return await res.json();
+  },
+
+  deleteProduct: async (id) => {
+    await fetch(`${PRODUCTS_URL}/${id}`, { method: "DELETE" });
+  },
+
+  // ================= ORDERS =================
+  createOrder: async (data) => {
+    // 1. ambil semua produk
+    const products = await fetch(PRODUCTS_URL).then((r) => r.json());
+
+    // 2. kurangi stok (PAKAI qty, BUKAN quantity)
+    for (const item of data.items) {
+      const product = products.find((p) => p.id === item.productId);
+      if (!product) continue;
+
+      const newStock = product.stock - item.qty;
+
+      await fetch(`${PRODUCTS_URL}/${product.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...product,
+          stock: newStock < 0 ? 0 : newStock,
+        }),
+      });
+    }
+
+    // 3. simpan order
+    const res = await fetch(ORDERS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(order),
-    }).then(res => res.json());
-  }
+      body: JSON.stringify(data),
+    });
+
+    return await res.json();
+  },
+
+  getAllOrders: async () => {
+    const res = await fetch(ORDERS_URL);
+    return await res.json();
+  },
 };
 
 export default realApiProvider;
