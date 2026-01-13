@@ -2,9 +2,16 @@
 import { Button } from "@/Components/ui/button"; // Import shadcn
 import { Trash2, ShoppingBag, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+// TAMBAHKAN IMPORT INI: <---
+import { useNavigate } from 'react-router-dom'; 
+// -------------------
 
 export const CartDrawer = () => {
   const { cart, removeFromCart, closeCart, isOpen, checkout } = useCart();
+  
+  // INISIALISASI NAVIGATE: <---
+  const navigate = useNavigate();
+  // -----------------
 
   const cartTotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -102,12 +109,25 @@ export const CartDrawer = () => {
               <span>Total</span>
               <span>{formattedTotal}</span>
             </div>
+            
+            {/* --- MODIFIKASI TOMBOL INI --- */}
             <Button
               className="w-full py-6 text-lg"
-              onClick={() => checkout("user@example.com")}
+              onClick={() => {
+                // Opsional: Jalankan logika checkout dari context jika ada
+                // checkout("user@example.com"); 
+                
+                // 1. Tutup drawer terlebih dahulu (lebih rapi)
+                closeCart();
+                
+                // 2. Pindah ke halaman Checkout
+                navigate('/checkout');
+              }}
             >
               Checkout
             </Button>
+            {/* -------------------------------- */}
+            
             <button
               onClick={closeCart}
               className="w-full mt-3 py-2 text-sm text-slate-500 font-medium hover:text-slate-900 transition-colors"

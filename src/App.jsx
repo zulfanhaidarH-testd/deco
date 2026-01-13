@@ -14,6 +14,7 @@ import { UserRoute } from './routes/UserRoute';
 import Login from './pages/auth/Login';
 
 // User Pages
+import Checkout from './pages/checkout/Checkout';
 import Home from './pages/Utama/Home';
 import CategoryPage from './pages/Category/CategoryCard';
 import AllProducts from './pages/Products/AllProducts';
@@ -78,6 +79,19 @@ function App() {
                     </div>
                   } />
                 </Route>
+
+                  {/*  CHECKOUT ROUTE */}
+                  <Route path="/checkout" element={
+                    <div className="flex flex-col min-h-screen">
+                      <Navbar />
+                      <main className="flex-grow">
+                        <Checkout />
+                      </main>
+                      <Footer />
+                      <CartDrawer />
+                    </div>
+                  } />
+                  
 
                 {/* 4. DEFAULT REDIRECT */}
                 <Route path="/" element={<Navigate to="/login" replace />} />

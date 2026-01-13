@@ -1,5 +1,5 @@
 // src/Components/user/layout/Navbar.jsx
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // 1. TAMBAHKAN useLocation
 import { ShoppingCart, LogOut, User, Settings, Heart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { 
@@ -23,6 +23,11 @@ export const Navbar = () => {
   const { cart, openCart } = useCart(); 
   const { logout, role } = useAuth();
   
+  // 2. DETEKSI LOKASI (PATHNAME)
+  const location = useLocation();
+  const isCheckoutPage = location.pathname === '/checkout';
+  // -----------------
+
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   const handleLogout = () => {
@@ -30,8 +35,15 @@ export const Navbar = () => {
     navigate('/login');
   };
 
+  // 3. LOGIKA CLASSNAME (Ganti sticky menjadi relative jika di checkout)
   return (
-    <nav className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/90 backdrop-blur-sm">
+    <nav 
+      className={`
+        w-full border-b border-slate-200 bg-white/90 backdrop-blur-sm 
+        z-40 
+        ${isCheckoutPage ? 'relative' : 'sticky top-0'}
+      `}
+    >
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
         <Link to="/" className="text-2xl font-bold tracking-tight text-slate-900 hover:opacity-80 transition-opacity">
           DecorInn
