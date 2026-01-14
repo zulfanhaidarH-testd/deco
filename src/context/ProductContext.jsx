@@ -51,6 +51,7 @@ export function ProductProvider({ children }) {
     await productService.deleteProduct(id);
   };
 
+
   const getProductById = async (id) => {
     return await productService.getProductById(id);
   };

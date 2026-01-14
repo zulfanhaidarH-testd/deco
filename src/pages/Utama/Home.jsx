@@ -10,7 +10,9 @@ import { MessageCircle } from 'lucide-react';
 export default function Home() {
   const { products, loading } = useProducts();
 
-  const featuredProducts = products.slice(0, 4);
+  const featuredProducts = products
+  .filter((p) => Number(p.stock) > 0)
+  .slice(0, 4);
 
   const categories = [
     { name: "Living Room", slug: "living-room", img: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?q=80&w=1092&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },

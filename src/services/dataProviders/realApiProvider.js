@@ -9,6 +9,7 @@ const realApiProvider = {
   // ================= PRODUCTS =================
   getAllProducts: async () => {
     const res = await fetch(PRODUCTS_URL);
+
     return await res.json();
   },
 
@@ -49,7 +50,7 @@ const realApiProvider = {
   },
 
   deleteProduct: async (id) => {
-    await fetch(`${PRODUCTS_URL}/${id}`, { method: "DELETE" });
+  const res = await fetch(`${PRODUCTS_URL}/${id}`, { method: "DELETE" });
   },
 
   // ================= ORDERS =================
@@ -66,7 +67,7 @@ const realApiProvider = {
       const orderQty = Number(item.quantity) || 0;
       const newStock = currentStock - orderQty;
 
-      await fetch(`${PRODUCTS_URL}/${product.id}`, {
+      const res = await fetch(`${PRODUCTS_URL}/${product.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

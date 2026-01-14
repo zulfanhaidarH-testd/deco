@@ -89,6 +89,8 @@ const Dashboard = () => {
     ];
   }
 
+  console.log("Popular Products:", displayProducts);
+
   // ================= HELPERS =================
   const formatCurrency = (value) =>
     new Intl.NumberFormat("id-ID", {
