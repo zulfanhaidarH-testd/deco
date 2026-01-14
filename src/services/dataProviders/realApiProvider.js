@@ -26,7 +26,11 @@ const realApiProvider = {
     const res = await fetch(PRODUCTS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        price: Number(data.price) || 0,
+        stock: Number(data.stock) || 0,
+      }),
     });
     return await res.json();
   },
@@ -35,7 +39,11 @@ const realApiProvider = {
     const res = await fetch(`${PRODUCTS_URL}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        price: Number(data.price) || 0,
+        stock: Number(data.stock) || 0,
+      }),
     });
     return await res.json();
   },
@@ -46,15 +54,17 @@ const realApiProvider = {
 
   // ================= ORDERS =================
   createOrder: async (data) => {
-    // 1. ambil semua produk
+    // Ambil semua produk
     const products = await fetch(PRODUCTS_URL).then((r) => r.json());
 
-    // 2. kurangi stok (PAKAI qty, BUKAN quantity)
+    // Kurangi stok berdasarkan quantity
     for (const item of data.items) {
       const product = products.find((p) => p.id === item.productId);
       if (!product) continue;
 
-      const newStock = product.stock - item.qty;
+      const currentStock = Number(product.stock) || 0;
+      const orderQty = Number(item.quantity) || 0;
+      const newStock = currentStock - orderQty;
 
       await fetch(`${PRODUCTS_URL}/${product.id}`, {
         method: "PUT",
@@ -66,11 +76,15 @@ const realApiProvider = {
       });
     }
 
-    // 3. simpan order
+    // Simpan order (INI YANG DIPAKAI TOTAL REVENUE)
     const res = await fetch(ORDERS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        totalPrice: Number(data.totalPrice) || 0,
+        createdAt: new Date().toISOString(),
+      }),
     });
 
     return await res.json();

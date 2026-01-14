@@ -7,12 +7,15 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
 
+  // ================= CART ACTIONS =================
   const addToCart = (product) => {
     setCart((prev) => {
-      const existingItem = prev.find((item) => item.id === product.id);
-      if (existingItem) {
+      const exist = prev.find((item) => item.id === product.id);
+      if (exist) {
         return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         );
       }
       return [...prev, { ...product, quantity: 1 }];
@@ -26,67 +29,75 @@ export function CartProvider({ children }) {
   const increaseQuantity = (id) => {
     setCart((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+        item.id === id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
       )
     );
   };
 
   const decreaseQuantity = (id) => {
     setCart((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const newQuantity = item.quantity - 1;
-          return newQuantity === 0 ? null : { ...item, quantity: newQuantity };
-        }
-        return item;
-      }).filter(Boolean)
+      prev
+        .map((item) =>
+          item.id === id
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
     );
   };
 
-  // Fungsi Checkout yang diperbarui
+  // ================= CHECKOUT (INI YANG PENTING UNTUK REVENUE) =================
   const checkout = async (userEmail, itemsToCheckout = null) => {
-    const itemsToProcess = itemsToCheckout || cart;
+    const items = itemsToCheckout || cart;
+    if (items.length === 0) return;
 
-    if (itemsToProcess.length === 0) return;
-
-    const orderItems = itemsToProcess.map(item => ({
-      productId: item.id || item.productId,
+    const orderItems = items.map((item) => ({
+      productId: item.id,
       name: item.name,
-      quantity: item.quantity
+      price: Number(item.price) || 0,
+      quantity: Number(item.quantity) || 0,
+      subtotal: (Number(item.price) || 0) * (Number(item.quantity) || 0),
     }));
 
-    try {
-      // Pastikan path import ini sesuai dengan struktur proyek Anda
-      const { productService } = await import('@/services/productService');
+    const totalPrice = orderItems.reduce(
+      (sum, item) => sum + item.subtotal,
+      0
+    );
 
+    try {
       await productService.checkout({
         userEmail,
-        items: orderItems
+        items: orderItems,
+        totalPrice, // ✅ INI YANG BUAT TOTAL REVENUE NAIK
       });
 
-      // Update Cart Logic
+      // Bersihkan cart
       if (itemsToCheckout) {
-        const idsToRemove = new Set(itemsToCheckout.map(item => item.id));
-        setCart(prev => prev.filter(item => !idsToRemove.has(item.id)));
+        const ids = new Set(itemsToCheckout.map((i) => i.id));
+        setCart((prev) => prev.filter((item) => !ids.has(item.id)));
       } else {
         setCart([]);
       }
 
       closeCart();
-      alert('Checkout berhasil! Terima kasih sudah berbelanja.');
     } catch (error) {
-      alert(`Gagal checkout: ${error.message}`);
-      throw error; 
+      console.error("Checkout gagal:", error);
+      throw error;
     }
   };
 
-  const getItemQuantity = (id) => {
-    return cart.find((item) => item.id === id)?.quantity || 0;
-  };
+  // ================= HELPERS =================
+  const getItemQuantity = (id) =>
+    cart.find((item) => item.id === id)?.quantity || 0;
 
-  const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const cartTotal = cart.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
 
-  // Fungsi kontrol Drawer
+  // ================= UI STATE =================
   const toggleCart = () => setIsOpen(!isOpen);
   const openCart = () => setIsOpen(true);
   const closeCart = () => setIsOpen(false);
@@ -96,16 +107,16 @@ export function CartProvider({ children }) {
       value={{
         cart,
         addToCart,
-        checkout,
         removeFromCart,
         increaseQuantity,
         decreaseQuantity,
+        checkout,
         getItemQuantity,
         cartTotal,
         isOpen,
         toggleCart,
         openCart,
-        closeCart
+        closeCart,
       }}
     >
       {children}
@@ -113,7 +124,6 @@ export function CartProvider({ children }) {
   );
 }
 
-// Pastikan fungsi useCart ini berada DI LUAR CartProvider
 export function useCart() {
   return useContext(CartContext);
 }
