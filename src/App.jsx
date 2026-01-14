@@ -15,7 +15,7 @@ import Login from './pages/auth/Login';
 
 // User Pages
 import Checkout from './pages/checkout/Checkout';
-import OrderSuccess from './pages/OrderSuccess'; // <--- TAMBAHKAN IMPORT INI
+import OrderSuccess from './pages/checkout/OrderSuccess'; // <--- TAMBAHKAN IMPORT INI
 import Home from './pages/Utama/Home';
 import CategoryPage from './pages/Category/CategoryCard';
 import AllProducts from './pages/Products/AllProducts';

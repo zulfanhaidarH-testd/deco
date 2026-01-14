@@ -1,6 +1,5 @@
-
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 
 // UI Components
@@ -14,68 +13,105 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShoppingCart, CreditCard, MapPin, User, Mail, QrCode, Minus, Plus, Trash2 } from 'lucide-react';
 
 export default function Checkout() {
-const navigate = useNavigate();
-const location = useLocation();
-const { cart, removeFromCart, increaseQuantity, decreaseQuantity } = useCart();
-const [shippingCost] = useState(25000);
+  const navigate = useNavigate();
 
-const formatRupiah = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
+  const {
+    cart,
+    cartTotal,
+    removeFromCart,
+    increaseQuantity,
+    decreaseQuantity,
+    checkout,
+  } = useCart();
 
-// --- LOGIKA PENERIMAAN DATA ID DARI CARTDRAWER ---
-const passedIds = location.state?.selectedIds;
-const selectedIdsSet = passedIds ? new Set(passedIds) : null;
+  const [shippingCost] = useState(25000);
 
-// Filter cart untuk mendapatkan barang yang dipilih saja
-// Fallback ke cart penuh jika state kosong (misal refresh halaman)
-const itemsToCheckout = selectedIdsSet
-? cart.filter(item => selectedIdsSet.has(item.id))
-: cart;
+  const formatRupiah = (n) =>
+    new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(n);
 
-// Hitung subtotal HANYA dari item yang difilter
-const currentSubtotal = itemsToCheckout.reduce((total, item) => total + (item.price * item.quantity), 0);
-// -----------------------------------------------
+  // ================= HANDLE CHECKOUT (FIXED) =================
+  const handlePlaceOrder = async () => {
+    const emailInput = document.getElementById('email');
+    const email = emailInput?.value?.trim();
 
-// Redirect jika keranjang kosong atau tidak ada item yang terpilih
-useEffect(() => {
-if (itemsToCheckout.length === 0) navigate('/products');
-}, [itemsToCheckout.length, navigate]);
+    if (!email) {
+      alert('Mohon isi email terlebih dahulu.');
+      return;
+    }
 
-// --- LOGIKA HANDLE PLACE ORDER ---
-const handlePlaceOrder = () => {
-// Di sini Anda bisa tambahkan logika kirim data ke Backend/API
-// console.log("Order Data:", itemsToCheckout);
+    if (!cart || cart.length === 0) {
+      alert('Keranjang kosong.');
+      return;
+    }
 
-// Reset keranjang (Opsional, bisa dijalankan jika ingin kosong setelah order)
-// const { clearCart } = useCart();
-// clearCart();
+    try {
+      // INI YANG BIKIN:
+      // - revenue nambah
+      // - stok berkurang
+      // - cart ke-reset
+      await checkout(email, cart);
 
-// Navigasi ke halaman Sukses
-navigate('/order-success');
-};
-// --------------------------------
+      navigate('/order-success');
+    } catch (err) {
+      console.error(err);
+      alert('Checkout gagal.');
+    }
+  };
 
-return (
-<div className="container mx-auto px-6 py-10 max-w-6xl">
-<div className="mb-8">
-<h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Checkout</h1>
-<p className="text-lg text-slate-500 mt-2">Please review your order and complete billing details.</p>
-</div>
+  return (
+    <div className="container mx-auto px-6 py-10 max-w-6xl">
+      <div className="mb-8">
+        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Checkout</h1>
+        <p className="text-lg text-slate-500 mt-2">
+          Please review your order and complete billing details.
+        </p>
+      </div>
 
-<div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-{/* LEFT: BILLING & SHIPPING */}
-<div className="lg:col-span-7 space-y-6">
-<Card>
-<CardHeader className="border-b border-slate-100 pb-4">
-<CardTitle className="text-2xl flex items-center gap-2"><MapPin className="h-6 w-6 text-primary"/>Billing Details</CardTitle>
-<CardDescription>Complete your details below to place your order.</CardDescription>
-</CardHeader>
-<CardContent className="space-y-6 pt-6">
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div className="space-y-2"><Label htmlFor="firstName">First Name</Label><div className="relative"><User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground"/><Input id="firstName" className="pl-10" placeholder="John"/></div></div>
-<div className="space-y-2"><Label htmlFor="lastName">Last Name</Label><Input id="lastName" placeholder="Doe"/></div>
-<div className="space-y-2"><Label htmlFor="email">Email Address</Label><div className="relative"><Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground"/><Input id="email" type="email" className="pl-10" placeholder="john@example.com"/></div></div>
-<div className="space-y-2"><Label htmlFor="phone">Phone Number</Label><Input id="phone" type="tel" placeholder="+62 812 3456 7890"/></div>
-</div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* LEFT */}
+        <div className="lg:col-span-7 space-y-6">
+          <Card>
+            <CardHeader className="border-b pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <MapPin /> Billing Details
+              </CardTitle>
+              <CardDescription>Complete your details</CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-6 pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>First Name</Label>
+                  <Input placeholder="John" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Last Name</Label>
+                  <Input placeholder="Doe" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      className="pl-10"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input placeholder="+62 812 xxxx" />
+                </div>
+                </div>
 <div className="space-y-6 pt-4 border-t border-slate-100">
 <h3 className="font-semibold text-lg text-slate-900 flex items-center gap-2"><MapPin className="h-5 w-5 text-slate-400"/>Shipping Address</h3>
 <div className="space-y-4">
@@ -99,69 +135,100 @@ return (
 </Select>
 </div>
 </div>
-</div>
-</CardContent>
-</Card>
-<Card>
-<CardHeader className="border-b border-slate-100 pb-4"><CardTitle className="text-2xl flex items-center gap-2"><CreditCard className="h-6 w-6 text-primary"/>Payment Method</CardTitle></CardHeader>
-<CardContent className="pt-6 space-y-4">
-<div className="flex items-center border-2 border-primary bg-primary/5 rounded-lg p-4 w-full cursor-pointer">
-<input type="radio" name="payment" id="bank_transfer" className="h-4 w-4 text-primary" defaultChecked/>
-<label htmlFor="bank_transfer" className="text-sm font-medium ml-3 flex items-center gap-2 cursor-pointer"><QrCode className="h-5 w-5 text-primary"/>QRIS (Bank Transfer)</label>
-</div>
-<p className="text-sm text-muted-foreground pl-1">You will be redirected to complete your payment securely.</p>
-</CardContent>
-</Card>
-</div>
+              </div>
+            </CardContent>
+          </Card>
 
-{/* RIGHT: ORDER SUMMARY */}
-<div className="lg:col-span-5">
-<Card className="sticky top-24 shadow-lg">
-<CardHeader className="bg-slate-50 border-b border-slate-200"><CardTitle className="text-2xl flex items-center gap-2"><ShoppingCart className="h-6 w-6 text-primary"/>Your Order ({itemsToCheckout.length})</CardTitle></CardHeader>
-<CardContent className="space-y-6 pt-6">
-<div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-{itemsToCheckout.map((item) => (
-<div key={item.id} className="flex gap-4 pb-4 border-b border-slate-100">
-<img src={item.image} alt={item.name} className="h-20 w-20 bg-slate-100 rounded-md object-cover"/>
-<div className="flex-1 space-y-2">
-<div className="flex justify-between"><h4 className="font-medium text-slate-900">{item.name}</h4><span className="text-xs text-slate-500 uppercase">{item.category}</span></div>
-<div className="flex justify-between items-center">
-<div className="flex items-center bg-white border border-slate-200 rounded-md p-1">
-<button onClick={() => decreaseQuantity(item.id)} className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 disabled:opacity-30" disabled={item.quantity <= 1}><Minus size={14}/></button>
-<span className="text-sm font-semibold w-6 text-center">{item.quantity}</span>
-<button onClick={() => increaseQuantity(item.id)} className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100"><Plus size={14}/></button>
-</div>
-<button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"><Trash2 size={16}/></button>
-</div>
-<p className="text-right font-bold text-slate-900 text-sm">{formatRupiah(item.price * item.quantity)}</p>
-</div>
-</div>
-))}
-</div>
-<div className="space-y-3 pt-4 border-t border-slate-200">
-<div className="flex justify-between text-sm text-slate-600"><span>Subtotal</span><span>{formatRupiah(currentSubtotal)}</span></div>
-<div className="flex justify-between text-sm text-slate-600"><span>Shipping</span><span>{formatRupiah(shippingCost)}</span></div>
-<div className="flex justify-between text-lg font-bold text-slate-900 pt-4 border-t border-slate-200 mt-2"><span>Total</span><span className="text-primary">{formatRupiah(currentSubtotal + shippingCost)}</span></div>
-</div>
-<div className="bg-slate-50 rounded-xl p-6 border border-slate-100 flex flex-col items-center justify-center text-center">
-<div className="mb-4 p-4 bg-white rounded-xl shadow-sm"><div className="h-48 w-48 flex items-center justify-center bg-slate-900 text-white rounded-lg"><QrCode className="h-32 w-32 opacity-90"/></div></div>
-<div><h4 className="font-semibold text-slate-900 text-lg">Scan to Pay</h4><p className="text-xs text-slate-500 mt-2">Use your banking app to scan this QR code to complete your payment securely.</p></div>
-<div className="mt-4 w-full bg-white p-3 rounded-lg border border-slate-200 flex items-center gap-3 text-sm text-slate-600 shadow-sm"><ShoppingCart className="h-4 w-4 text-primary"/><span className="text-xs font-mono text-slate-500">Ref: <span className="font-bold text-slate-900">DEC-88219-X</span></span></div>
-</div>
+          <Card>
+            <CardHeader className="border-b pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard /> Payment Method
+              </CardTitle>
+            </CardHeader>
 
-{/* TOMBOL PLACE ORDER */}
-<Button
-className="w-full h-14 text-lg font-bold shadow-md"
-onClick={handlePlaceOrder}
->
-Place Order
-</Button>
+            <CardContent className="pt-6">
+              <div className="flex items-center border-2 border-primary bg-primary/5 rounded-lg p-4">
+                <QrCode className="mr-3" /> QRIS / Bank Transfer
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-<p className="text-center text-xs text-slate-400 mt-4">By placing this order, you agree to our Terms & Conditions.</p>
-</CardContent>
-</Card>
-</div>
-</div>
-</div>
-);
+        {/* RIGHT */}
+        <div className="lg:col-span-5">
+          <Card className=" top-24">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart /> Your Order ({cart.length})
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              {cart.map((item) => (
+                <div key={item.id} className="flex gap-4 border-b pb-4">
+                  <img src={item.image} className="h-20 w-20 rounded object-cover" />
+
+                  <div className="flex-1">
+                    <h4 className="font-semibold">{item.name}</h4>
+
+                    <div className="flex items-center gap-2 mt-2">
+                      <button onClick={() => decreaseQuantity(item.id)}>
+                        <Minus size={14} />
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button onClick={() => increaseQuantity(item.id)}>
+                        <Plus size={14} />
+                      </button>
+                      <button
+                        className="ml-auto text-red-500"
+                        onClick={() => removeFromCart(item.id)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+
+                    <p className="text-right font-bold">
+                      {formatRupiah(item.price * item.quantity)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>{formatRupiah(cartTotal)}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>{formatRupiah(shippingCost)}</span>
+                </div>
+
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>{formatRupiah(cartTotal + shippingCost)}</span>
+                </div>
+              </div>
+              
+              <div className="bg-slate-50 rounded-xl p-6 text-center">
+                <div className='mb-4 p-4 bg-white rounded-xl shadow-sm'>
+                <img src="/src/assets/qr.jpeg" alt="Furniture" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
+                <p className="text-sm  text-slate-500">
+                  Scan QR to complete payment
+                </p>
+              </div>
+              </div>
+              <Button
+                className="w-full h-14 text-lg font-bold"
+                onClick={handlePlaceOrder}
+              >
+                Place Order
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 }
