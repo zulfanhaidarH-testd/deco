@@ -1,27 +1,51 @@
-// import { Button } from '../../ui/Button'; // Hapus
-import { Button } from "@/Components/ui/button"; // Import shadcn
+import { useState, useEffect } from "react";
+import { Button } from "@/Components/ui/button"; // Pastikan path sesuai project Anda
 import { Trash2, ShoppingBag, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-// TAMBAHKAN IMPORT INI: <---
-import { useNavigate } from 'react-router-dom'; 
-// -------------------
+import { useNavigate } from 'react-router-dom';
+import { Checkbox } from "@/Components/ui/checkbox"; // Pastikan komponen Checkbox shadcn sudah ada
 
 export const CartDrawer = () => {
-  const { cart, removeFromCart, closeCart, isOpen, checkout } = useCart();
-  
-  // INISIALISASI NAVIGATE: <---
+  const { cart, removeFromCart, closeCart, isOpen } = useCart();
   const navigate = useNavigate();
-  // -----------------
 
-  const cartTotal = cart.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  // State untuk menyimpan ID barang yang dipilih
+  const [selectedItems, setSelectedItems] = useState(new Set());
+
+  // Otomatis pilih semua saat cart berubah (item ditambah/dikurang)
+  useEffect(() => {
+    if (cart.length > 0) {
+      const allIds = new Set(cart.map((item) => item.id));
+      setSelectedItems(allIds);
+    } else {
+      setSelectedItems(new Set());
+    }
+  }, [cart]);
+
+  // Fungsi handle checkbox
+  const handleSelectItem = (id, checked) => {
+    const newSelected = new Set(selectedItems);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  // Hitung total berdasarkan barang yang DICENTANG saja
+  const selectedTotal = cart.reduce((total, item) => {
+    if (selectedItems.has(item.id)) {
+      return total + item.price * item.quantity;
+    }
+    return total;
+  }, 0);
+
   const formattedTotal = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
-  }).format(cartTotal);
+  }).format(selectedTotal);
 
   if (!isOpen) return null;
 
@@ -67,6 +91,16 @@ export const CartDrawer = () => {
                   key={item.id}
                   className="flex gap-4 border-b border-slate-50 pb-4 last:border-0 last:pb-0"
                 >
+                  {/* Checkbox Item */}
+                  <div className="flex items-center justify-center pt-1">
+                    <Checkbox
+                      id={`select-${item.id}`}
+                      checked={selectedItems.has(item.id)}
+                      onCheckedChange={(checked) => handleSelectItem(item.id, checked)}
+                      className="border-slate-300 data-[state=checked]:bg-primary"
+                    />
+                  </div>
+
                   <div className="w-20 h-20 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
                     <img
                       src={item.image}
@@ -110,23 +144,22 @@ export const CartDrawer = () => {
               <span>{formattedTotal}</span>
             </div>
             
-            {/* --- MODIFIKASI TOMBOL INI --- */}
+            {/* Tombol Checkout dengan Pengiriman Data State */}
             <Button
               className="w-full py-6 text-lg"
+              disabled={selectedItems.size === 0} // Matikan jika tidak ada barang dipilih
               onClick={() => {
-                // Opsional: Jalankan logika checkout dari context jika ada
-                // checkout("user@example.com"); 
-                
-                // 1. Tutup drawer terlebih dahulu (lebih rapi)
                 closeCart();
-                
-                // 2. Pindah ke halaman Checkout
-                navigate('/checkout');
+                // PENTING: Mengirim ID barang yang dipilih ke halaman checkout
+                navigate('/checkout', { 
+                  state: { 
+                    selectedIds: Array.from(selectedItems) 
+                  } 
+                });
               }}
             >
-              Checkout
+              Checkout {selectedItems.size > 0 && `(${selectedItems.size})`}
             </Button>
-            {/* -------------------------------- */}
             
             <button
               onClick={closeCart}
